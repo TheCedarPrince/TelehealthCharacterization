@@ -1,0 +1,10 @@
+[deps]
+DBInterface = "a10d1c49-ce27-4219-8d33-6db1a4562965"
+DataDeps = "124859b0-ceae-595e-8997-d05f6a7a8dfe"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
+FunSQL = "cf6cc811-59f4-4a10-b258-a8547a8f6407"
+LibPQ = "194296ae-ab2e-5f79-8cd4-7183a0a5a0d1"
+OMOPCDMCohortCreator = "f525a15e-a73f-4eef-870f-f901257eae22"
+OMOPCDMDatabaseConnector = "123dea01-d0aa-44c8-898b-977e0601f7b1"
+SQLite = "0aa819cd-b072-5ff4-a722-6bc24af294d9"
