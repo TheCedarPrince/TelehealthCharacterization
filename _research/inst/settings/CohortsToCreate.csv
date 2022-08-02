@@ -1,0 +1,4 @@
+atlas_id,cohort_id,cohort_name,logic_description,generate_stats
+1778211,1778211,[CohortGenerator] celecoxib,NA,FALSE
+1778212,1778212,[CohortGenerator] celecoxib age 40,NA,FALSE
+1778213,1778213,[CohortGenerator] celecoxib age 40 and male,NA,FALSE
