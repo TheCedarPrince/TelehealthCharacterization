@@ -5,6 +5,7 @@ using FunSQL
 using LibPQ
 using OMOPCDMCohortCreator
 using OMOPCDMDatabaseConnector
+using SQLite
 
 function datasets()
 
@@ -19,11 +20,11 @@ end
 
 datasets()
 
-conn = DBInterface.connect(LibPQ.Connection, "")  
+conn = SQLite.DB(datadep"Eunomia/eunomia.sqlite")
 
 GenerateDatabaseDetails(
     :postgresql,
-    "synpuf5"
+    "mimic_v531"
 )
 
 tables = GenerateTables(conn, exported = true)
@@ -31,11 +32,19 @@ person = tables[:person]
 
 include("concept_sets.jl")
 
+#TODO: Fix documentation in OMOPCDMCohortCreator.VisitFilterPersonIDs as the function def is wrong
+#TODO: Export VisitFilterPersonIDs as it is currently unexported
+OMOPCDMCohortCreator.VisitFilterPersonIDs([9201], conn)
+OMOPCDMCohortCreator
+
+#BUG: There is a logical error in GetPatientVisits as it returns concept ids - NOT unique visit occurrences like it should
+OMOPCDMCohortCreator.GetPatientVisits([44127, 22344], conn)
+
 #######################################
 # DEFINE PATIENT TELEHEALTH VISITS
 #######################################
 
-visit_codes = [vcat(telehealth_e_visits, telehealth_visits, medicare_telehealth_visits), nothing]
+visit_codes = [vcat(telehealth_e_visits, common_medicare_telehealth_visits, medicare_telehealth_visits), nothing]
 
 ###############################
 # DEFINE PATIENT RACES
@@ -45,7 +54,7 @@ races =
     FunSQL.From(person) |>
     FunSQL.Group(FunSQL.Get.race_concept_id) |>
     q -> FunSQL.render(q) |>
-    x -> LibPQ.execute(conn, x) |> DataFrame
+    x -> DBInterface.execute(conn, x) |> DataFrame
 
 race_codes = vcat(races.race_concept_id, nothing)
 
@@ -83,24 +92,21 @@ gender_codes = vcat(genders.gender_concept_id, nothing) |> vals -> filter(x -> !
 ###############################
 
 cohort_defs = collect(
-    Iterators.product(visit_codes, gender_codes, race_codes, age_groups),
+                      Iterators.product([192671, nothing], [nothing], gender_codes, race_codes, age_groups),
 );
 
 cohort_ids = []
-
-counter = 1
-for (visit, gender, race, age_group) in cohort_defs
+for (condition, visit, gender, race, age_group) in cohort_defs
 
     ids = GenerateCohorts(
 	conn;
+        condition_codes = condition,
         visit_codes = visit,
         gender_codes = gender,
         race_codes = race,
-        age_groupings = [age_group],
+        age_groupings = [nothing],
     )
     push!(cohort_ids, ids)
-
-    break
 
 end
 
@@ -110,7 +116,7 @@ for (idx, cohort) in enumerate(cohort_ids)
 
     definition = cohort_defs[idx]
 
-    df = GenerateStudyPopulations(
+    df = GenerateStudyPopulation(
         cohort,
         conn;
         by_visit = isnothing(definition[1]) ? false : true,
